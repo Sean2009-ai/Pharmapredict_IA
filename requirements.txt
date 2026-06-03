@@ -1,7 +1,6 @@
-Flask
-Flask-Cors
-gunicorn
-pandas
-numpy
-scikit-learn
-joblib
+flask==3.0.3flask-cors==4.0.1gunicorn==22.0.0
+pandas==2.2.2
+openpyxl==3.1.5
+python-dotenv==1.0.1
+httpx==0.27.0
+supabase==2.5.0
