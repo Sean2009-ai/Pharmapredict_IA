@@ -32,7 +32,7 @@ def waitlist():
     # TODO : enregistrer l'email en base ou envoyer vers Mailchimp / Brevo
     print(f"[Waitlist] Nouvel inscrit : {email}")
 
-    return jsonify({"success": True, "message": "Inscription confirmée !"})
+    return jsonify({"success": True, "message": "Bienvenue ! Accès au tableau de bord.", "redirect": "/dashboard"})
 
 
 # ─── Lancement ────────────────────────────────────────────────────────────────
