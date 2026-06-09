@@ -1,309 +1,721 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PharmaPredict AI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PharmaPredict IA — IA prédictive pour pharmacies africaines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
+    /* ── Reset & tokens ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg:      #070b12;
-      --surface: #0b0f18;
-      --border:  #1a2035;
-      --text:    #e8eaf0;
-      --muted:   #4a5568;
-      --emerald: #34d399;
-      --red:     #f87171;
-      --amber:   #fbbf24;
-      --blue:    #60a5fa;
-      --violet:  #a78bfa;
+      --green-dark:  #0a3d2e;
+      --green-mid:   #1a6645;
+      --green-light: #2ecc8a;
+      --green-glow:  #2ecc8a22;
+      --amber:       #f5a623;
+      --red-soft:    #e05c5c;
+      --bg:          #05150f;
+      --bg-card:     #0d2318;
+      --bg-card2:    #102b1e;
+      --text:        #e8f5ee;
+      --text-muted:  #7aad90;
+      --border:      #1e4a34;
+      --radius:      12px;
+      --radius-lg:   20px;
     }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh}
-    .page{display:none}.page.active{display:block}
 
-    /* Header */
-    header{position:sticky;top:0;z-index:50;background:rgba(7,11,18,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-    .logo{display:flex;align-items:center;gap:10px}
-    .logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--emerald),#0d9488);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#000}
-    .logo-text{font-weight:800;font-size:16px}.logo-text span{color:var(--emerald)}
-    .badge-mode{font-size:10px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border);border-radius:20px;padding:2px 8px;color:var(--muted);margin-left:8px;display:none}
-    .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4f46e5);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;cursor:pointer}
+    html { scroll-behavior: smooth; }
 
-    /* Nav */
-    nav{border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:2px;overflow-x:auto}
-    nav button{background:none;border:none;cursor:pointer;padding:12px 16px;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
-    nav button.active{color:var(--emerald);border-bottom-color:var(--emerald)}
-    nav button:hover:not(.active){color:var(--text)}
-    .notif-dot{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#fff;font-size:10px;font-weight:900;width:16px;height:16px;border-radius:50%;margin-left:6px}
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
 
-    /* Layout */
-    main{max-width:1100px;margin:0 auto;padding:32px 24px}
+    h1, h2, h3, .display {
+      font-family: 'Syne', sans-serif;
+      line-height: 1.15;
+    }
 
-    /* KPI */
-    .kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
-    @media(min-width:640px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
-    .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px}
-    .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:8px}
-    .kpi-value{font-size:28px;font-weight:800;color:#fff;line-height:1}
-    .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+    /* ── Nav ─────────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 5%;
+      background: #05150fdd;
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
 
-    /* Card */
-    .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px}
-    .card-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:16px}
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: var(--green-light);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-    /* Table */
-    .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
-    .table-header{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 80px;padding:10px 20px;border-bottom:1px solid var(--border)}
-    .table-header span{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
-    .table-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 80px;padding:14px 20px;border-bottom:1px solid rgba(26,32,53,.5);cursor:pointer;transition:background .15s;align-items:center}
-    .table-row:last-child{border-bottom:none}
-    .table-row:hover{background:rgba(255,255,255,.02)}
-    .table-row.past-due{background:rgba(248,113,113,.03)}
-    .table-row.cancelled{opacity:.45}
-    @media(max-width:640px){.table-header{display:none}.table-row{grid-template-columns:1fr auto;gap:8px}.table-row>*:nth-child(n+3){display:none}}
+    .nav-links { display: flex; gap: 10px; }
 
-    /* Cells */
-    .ph-cell{display:flex;align-items:center;gap:10px;min-width:0}
-    .ph-flag{width:32px;height:32px;border-radius:8px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-    .ph-name{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .ph-owner{font-size:11px;color:var(--muted)}
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      border: none;
+    }
 
-    /* Badges */
-    .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;border:1px solid}
-    .badge-solo{color:#38bdf8;background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.3)}
-    .badge-croissance{color:var(--violet);background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3)}
-    .badge-empire{color:var(--amber);background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.3)}
-    .status-dot{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
-    .dot{width:6px;height:6px;border-radius:50%}
-    .dot-active{background:var(--emerald)}.dot-past_due{background:var(--red);animation:pulse 1s infinite}
-    .dot-trial{background:var(--blue)}.dot-cancelled{background:var(--muted)}
-    .badge-active{color:var(--emerald)}.badge-past_due{color:var(--red)}.badge-trial{color:var(--blue)}.badge-cancelled{color:var(--muted)}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--green-light); }
 
-    /* Alerts */
-    .alert-banner{border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
-    .alert-red{background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.2)}
-    .alert-blue{background:rgba(96,165,250,.05);border:1px solid rgba(96,165,250,.2)}
-    .alert-yellow{background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.2)}
-    .alert-title{font-size:13px;font-weight:700}
-    .alert-sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .btn-primary {
+      background: var(--green-light);
+      color: var(--green-dark);
+    }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
-    /* Buttons */
-    .btn{border:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;border-radius:12px;padding:9px 14px;transition:all .2s;white-space:nowrap}
-    .btn-red{background:rgba(248,113,113,.2);border:1px solid rgba(248,113,113,.3);color:var(--red)}
-    .btn-red:hover{background:rgba(248,113,113,.3)}
-    .btn-blue{background:rgba(96,165,250,.2);border:1px solid rgba(96,165,250,.3);color:var(--blue)}
-    .btn-blue:hover{background:rgba(96,165,250,.3)}
-    .btn-ghost{background:var(--border);border:1px solid var(--border);color:#ccc}
-    .btn-ghost:hover{background:#1e2840}
-    .btn-emerald{background:var(--emerald);color:#000}
-    .btn-emerald:hover{opacity:.85}
-    .btn-group{display:flex;gap:8px;flex-wrap:wrap}
+    .btn-outline {
+      background: transparent;
+      color: var(--green-light);
+      border: 1px solid var(--green-light);
+    }
+    .btn-outline:hover { background: var(--green-glow); }
 
-    /* Action card */
-    .action-card{background:var(--surface);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:12px;border:1px solid var(--border);margin-bottom:12px}
-    @media(min-width:640px){.action-card{flex-direction:row;align-items:center}}
-    .action-card.red-card{border-color:rgba(248,113,113,.2)}
-    .action-card.blue-card{border-color:rgba(96,165,250,.2)}
+    /* ── Trust bar ───────────────────────────────────────────── */
+    .trust-bar {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      padding: 10px 5%;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .trust-bar span { display: flex; align-items: center; gap: 5px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green-light); }
 
-    /* Inventory */
-    .inv-grid{display:flex;flex-direction:column;gap:10px}
-    .inv-row{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px}
-    .inv-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-    .inv-status.red{background:var(--red)}.inv-status.yellow{background:var(--amber)}.inv-status.green{background:var(--emerald)}
-    .inv-name{flex:1;font-size:13px;font-weight:700}
-    .inv-meta{font-size:11px;color:var(--muted)}
-    .inv-action{background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;font-family:'Syne',sans-serif;padding:5px 10px;cursor:pointer;transition:all .2s;white-space:nowrap}
-    .inv-action:hover{border-color:var(--emerald);color:var(--emerald)}
+    /* ── Hero ────────────────────────────────────────────────── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 90px 5% 70px;
+      position: relative;
+    }
 
-    /* Bar chart */
-    .bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px}
-    .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
-    .bar{width:100%;border-radius:4px 4px 0 0;background:var(--border);transition:height .6s ease}
-    .bar.last{background:var(--emerald)}
-    .bar-label{font-size:9px;color:var(--muted)}
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 45% at 50% 0%, #1a664522 0%, transparent 70%);
+      pointer-events: none;
+    }
 
-    /* Plan grid */
-    .plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .plan-card{background:var(--surface);border-radius:14px;padding:16px;border:1px solid var(--border)}
-    .plan-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-    .plan-count{font-size:26px;font-weight:800}
-    .progress-bar{height:4px;background:var(--border);border-radius:4px;margin-top:8px;overflow:hidden}
-    .progress-fill{height:100%;border-radius:4px}
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--green-glow);
+      border: 1px solid var(--green-light);
+      border-radius: 99px;
+      font-size: 0.8rem;
+      color: var(--green-light);
+      margin-bottom: 28px;
+      font-weight: 600;
+    }
 
-    /* Retention */
-    .retention-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    @media(min-width:640px){.retention-grid{grid-template-columns:repeat(4,1fr)}}
-    .ret-card{text-align:center}
-    .ret-val{font-size:24px;font-weight:800;color:var(--emerald)}
-    .ret-lbl{font-size:12px;font-weight:600;margin-top:4px}
-    .ret-sub{font-size:10px;color:var(--muted);margin-top:2px}
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 800;
+      max-width: 800px;
+      margin-bottom: 20px;
+    }
 
-    /* Savings */
-    .savings-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center}
-    .savings-val{font-size:26px;font-weight:800}
-    .savings-lbl{font-size:11px;color:var(--muted);margin-top:4px}
+    .hero h1 em {
+      font-style: normal;
+      color: var(--green-light);
+    }
 
-    /* Landing */
-    .landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px}
-    .landing h1{font-size:clamp(2rem,6vw,3.5rem);font-weight:800;line-height:1.1;margin-bottom:16px}
-    .landing h1 span{color:var(--emerald)}
-    .landing p{font-size:16px;color:var(--muted);max-width:480px;margin-bottom:36px;line-height:1.7}
-    .cta-group{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-    .cta-primary{background:var(--emerald);color:#000;font-weight:800;padding:14px 28px;border-radius:14px;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:14px;transition:opacity .2s}
-    .cta-primary:hover{opacity:.85}
-    .cta-secondary{background:var(--surface);color:var(--text);font-weight:600;padding:14px 28px;border-radius:14px;border:1px solid var(--border);cursor:pointer;font-family:'Syne',sans-serif;font-size:14px}
-    .cta-secondary:hover{background:#111827}
-    .features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:60px;max-width:800px;width:100%;text-align:left}
-    .feature-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px}
-    .feature-icon{font-size:28px;margin-bottom:10px}
-    .feature-title{font-size:14px;font-weight:700;margin-bottom:6px}
-    .feature-desc{font-size:12px;color:var(--muted);line-height:1.6}
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin-bottom: 36px;
+    }
 
-    /* Drawer */
-    .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:100;display:none;align-items:stretch;justify-content:flex-end}
-    .drawer-overlay.open{display:flex}
-    .drawer-bg{flex:1}
-    .drawer{width:100%;max-width:360px;background:var(--surface);border-left:1px solid var(--border);height:100vh;overflow-y:auto;display:flex;flex-direction:column}
-    .drawer-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
-    .drawer-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px}
-    .drawer-close:hover{color:var(--text)}
-    .drawer-body{padding:20px 24px;flex:1;display:flex;flex-direction:column;gap:16px}
-    .info-block{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:14px}
-    .info-block-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:10px}
-    .info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-    .info-row:last-child{margin-bottom:0}
-    .info-key{font-size:12px;color:var(--muted)}
-    .info-val{font-size:12px;font-weight:600;color:var(--text)}
+    .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 
-    /* Empty state */
-    .empty{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+    /* ── Proof ticker ────────────────────────────────────────── */
+    .proof-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 56px;
+      padding: 18px 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .proof-number {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--green-light);
+    }
+    .proof-label { font-size: 0.85rem; color: var(--text-muted); text-align: left; }
+    .proof-label strong { display: block; color: var(--text); font-size: 0.95rem; }
+    .proof-disclaimer {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      opacity: 0.7;
+    }
 
-    /* Toast */
-    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--emerald);color:var(--emerald);font-size:13px;font-weight:600;padding:10px 20px;border-radius:40px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:200}
-    #toast.show{opacity:1}
+    /* ── Section shell ───────────────────────────────────────── */
+    section { padding: 80px 5%; }
 
-    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    .animate{animation:fadeUp .4s ease both}
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--green-light);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 540px;
+      margin-bottom: 52px;
+    }
+
+    .centered { text-align: center; }
+    .centered .section-sub { margin-left: auto; margin-right: auto; }
+
+    /* ── Modules grid ────────────────────────────────────────── */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .module-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 26px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .module-card:hover { border-color: var(--green-light); transform: translateY(-2px); }
+
+    .module-icon { font-size: 1.8rem; margin-bottom: 14px; }
+    .module-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .module-card p { font-size: 0.9rem; color: var(--text-muted); }
+
+    /* ── Three buttons ───────────────────────────────────────── */
+    .three-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .action-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .action-card h3 { font-size: 1.05rem; font-weight: 700; }
+    .action-card p { font-size: 0.88rem; color: var(--text-muted); flex: 1; }
+
+    /* ── Stock dashboard ──────────────────────────────────────── */
+    .stock-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 36px;
+    }
+
+    .stock-item {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stock-item .drug-name { font-weight: 600; font-size: 0.95rem; }
+    .stock-item .drug-qty { font-size: 0.83rem; color: var(--text-muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      width: fit-content;
+    }
+    .badge-green  { background: #2ecc8a1a; color: var(--green-light); border: 1px solid #2ecc8a44; }
+    .badge-amber  { background: #f5a6231a; color: var(--amber);       border: 1px solid #f5a62344; }
+    .badge-red    { background: #e05c5c1a; color: var(--red-soft);    border: 1px solid #e05c5c44; }
+    .badge-grey   { background: #ffffff0d; color: var(--text-muted);  border: 1px solid var(--border); }
+
+    .stock-action {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: var(--green-light);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .stock-legend {
+      display: flex;
+      gap: 20px;
+      margin-top: 18px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .stock-legend span { display: flex; align-items: center; gap: 6px; }
+
+    /* ── Pricing ──────────────────────────────────────────────── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .plan-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .plan-card.popular {
+      border-color: var(--green-light);
+      background: linear-gradient(160deg, #0d2318, #0f3322);
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--green-light);
+      color: var(--green-dark);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 14px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    .plan-name { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; }
+    .plan-price {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--green-light);
+      margin: 8px 0;
+    }
+    .plan-price span { font-size: 0.9rem; color: var(--text-muted); font-weight: 400; }
+    .plan-trial { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
+
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+    .plan-features li {
+      font-size: 0.88rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      color: var(--text-muted);
+    }
+    .plan-features li.on  { color: var(--text); }
+    .plan-features li.off { opacity: 0.45; text-decoration: line-through; }
+
+    .check { color: var(--green-light); flex-shrink: 0; }
+    .cross { color: var(--red-soft);   flex-shrink: 0; }
+
+    .plan-cta { margin-top: 24px; }
+
+    /* ── CTA banner ──────────────────────────────────────────── */
+    .cta-banner {
+      background: linear-gradient(135deg, var(--bg-card) 0%, #0f3322 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 60px 5%;
+      text-align: center;
+      margin: 0 5% 80px;
+    }
+    .cta-banner h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 12px; }
+    .cta-banner p  { color: var(--text-muted); margin-bottom: 32px; font-size: 0.95rem; }
+    .cta-banner .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    footer a { color: var(--text-muted); text-decoration: none; }
+    footer a:hover { color: var(--green-light); }
+
+    /* ── Toast ───────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--green-light);
+      color: var(--green-dark);
+      padding: 12px 28px;
+      border-radius: 99px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: transform 0.35s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .nav-links .btn-ghost { display: none; }
+      .hero { padding: 60px 5% 50px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
   </style>
 </head>
 <body>
 
-<!-- Header -->
-<header>
-  <div class="logo">
-    <div class="logo-icon">Rx</div>
-    <span class="logo-text">PharmaPredict <span>AI</span></span>
-    <span class="badge-mode" id="header-badge">Admin</span>
+<!-- ── Nav ──────────────────────────────────────────────────── -->
+<nav>
+  <a href="/" class="nav-logo">💊 PharmaPredict IA</a>
+  <div class="nav-links">
+    <a href="/dashboard" class="btn btn-ghost">Se connecter</a>
+    <a href="#essai" class="btn btn-primary">Essai gratuit</a>
   </div>
-  <div style="display:flex;align-items:center;gap:12px">
-    <span style="font-size:11px;color:var(--emerald);font-weight:700;display:flex;align-items:center;gap:6px">
-      <span style="width:6px;height:6px;border-radius:50%;background:var(--emerald);animation:pulse 1.5s infinite;display:inline-block"></span>Live
-    </span>
-    <div class="avatar" onclick="toggleMode()">A</div>
-  </div>
-</header>
-
-<!-- Nav pharmacien -->
-<nav id="nav-pharmacien" style="display:none">
-  <button class="active" onclick="showTab('dashboard','pharmacien')">🏠 Tableau de bord</button>
-  <button onclick="showTab('stocks','pharmacien')">📦 Stocks</button>
-  <button onclick="showTab('predictions','pharmacien')">🧠 Prédictions</button>
-  <button onclick="showTab('commandes','pharmacien')">🛒 Commandes</button>
 </nav>
 
-<!-- Nav admin -->
-<nav id="nav-admin" style="display:none">
-  <button class="active" onclick="showTab('overview','admin')">📊 Vue globale</button>
-  <button onclick="showTab('pharmacies','admin')">🏥 Pharmacies</button>
-  <button onclick="showTab('revenus','admin')">💰 Revenus</button>
-  <button onclick="showTab('urgences','admin')">🚨 Urgences <span class="notif-dot" id="urgences-dot" style="display:none">0</span></button>
-</nav>
+<!-- ── Trust bar ─────────────────────────────────────────────── -->
+<div class="trust-bar">
+  <span><span class="dot"></span> Données sécurisées</span>
+  <span><span class="dot"></span> Compatible Excel / CSV</span>
+  <span><span class="dot"></span> Alertes WhatsApp</span>
+  <span><span class="dot"></span> 30 jours gratuits — sans carte bancaire</span>
+</div>
 
-<!-- ══ LANDING ══ -->
-<div id="page-landing" class="page active">
-  <div class="landing">
-    <h1>Arrêtez de jeter<br/><span>de l'argent</span> par la fenêtre</h1>
-    <p>PharmaPredict AI prédit vos besoins en médicaments et élimine les ruptures de stock et les périmés. Pour les pharmacies indépendantes d'Afrique.</p>
-    <div class="cta-group">
-      <button class="cta-primary" onclick="enterApp('pharmacien')">🏥 Espace Pharmacien</button>
-      <button class="cta-secondary" onclick="enterApp('admin')">⚙️ Espace Admin</button>
+<!-- ── Hero ──────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-eyebrow">🌍 Conçu pour les officines africaines</div>
+  <h1>Fini les ruptures.<br>Fini les <em>périmés</em>.</h1>
+  <p>PharmaPredict IA anticipe vos besoins en médicaments grâce à l'intelligence artificielle. Réduisez vos pertes de stock de 80 % et éliminez les ruptures sur les essentiels.</p>
+  <div class="hero-ctas">
+    <a href="#essai" class="btn btn-primary">🚀 Démarrer gratuitement</a>
+    <a href="#modules" class="btn btn-outline">Voir les modules</a>
+  </div>
+
+  <div class="proof-card">
+    <div>
+      <div class="proof-number">+ 450 000 FCFA</div>
+      <div class="proof-disclaimer">Exemple basé sur une officine type — résultats variables</div>
     </div>
-    <div class="features-grid">
-      <div class="feature-card animate">
-        <div class="feature-icon">🧠</div>
-        <div class="feature-title">Prédictions IA</div>
-        <div class="feature-desc">Algorithme Prophet croise vos ventes avec la météo et les saisons pour anticiper les pics de demande.</div>
-      </div>
-      <div class="feature-card animate" style="animation-delay:.05s">
-        <div class="feature-icon">🔴</div>
-        <div class="feature-title">Alertes Anti-Pertes</div>
-        <div class="feature-desc">Système Rouge / Jaune / Vert qui détecte les médicaments qui vont périmer dans les 90 jours.</div>
-      </div>
-      <div class="feature-card animate" style="animation-delay:.1s">
-        <div class="feature-icon">🛒</div>
-        <div class="feature-title">Bon de commande optimal</div>
-        <div class="feature-desc">Un clic pour générer le bon de commande exact à envoyer à Laborex ou Ubipharm.</div>
-      </div>
-      <div class="feature-card animate" style="animation-delay:.15s">
-        <div class="feature-icon">💬</div>
-        <div class="feature-title">Alertes WhatsApp</div>
-        <div class="feature-desc">Résumé hebdomadaire chaque lundi matin directement sur votre téléphone.</div>
+    <div class="proof-label">
+      <strong>Pertes évitées ce mois</strong>
+      grâce aux alertes anti-périmés et<br>à la liste d'achat optimisée
+    </div>
+  </div>
+</section>
+
+<!-- ── Modules ────────────────────────────────────────────────── -->
+<section id="modules">
+  <div class="section-label">✦ Modules IA</div>
+  <h2 class="section-title">Une IA pensée pour<br>les officines africaines</h2>
+  <p class="section-sub">Six modules qui transforment vos données de vente en décisions d'achat rentables.</p>
+
+  <div class="modules-grid">
+    <div class="module-card">
+      <div class="module-icon">🌧️</div>
+      <h3>Saisonnalité et pathologies</h3>
+      <p>L'IA anticipe l'explosion des cas de paludisme 30 jours avant la saison des pluies.</p>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">📍</div>
+      <h3>Veille de quartier</h3>
+      <p>Alerte automatique si une pathologie monte dans votre zone géographique.</p>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">🚦</div>
+      <h3>Anti-périmés</h3>
+      <p>Tableau de bord rouge / jaune / vert sur la santé de votre stock en temps réel.</p>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">📥</div>
+      <h3>Import universel</h3>
+      <p>Glissez votre export Excel / CSV : l'IA reconnaît automatiquement les colonnes.</p>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">🛒</div>
+      <h3>Liste d'achat optimale</h3>
+      <p>Un PDF prêt à envoyer à Laborex, Ubipharm et autres grossistes en un clic.</p>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">📱</div>
+      <h3>Alertes WhatsApp</h3>
+      <p>Chaque lundi, un résumé concis sur votre téléphone — sans ouvrir l'application.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Three buttons ──────────────────────────────────────────── -->
+<section>
+  <div class="section-label">✦ Simplicité</div>
+  <h2 class="section-title">Trois boutons. Zéro complexité.</h2>
+  <p class="section-sub">Vos assistants n'ont pas le temps de configurer des graphiques. Nous l'avons compris.</p>
+
+  <div class="three-buttons">
+    <div class="action-card">
+      <div style="font-size:1.6rem">🛒</div>
+      <h3>Générer ma liste d'achat optimale</h3>
+      <p>PDF / Excel prêt à envoyer aux grossistes, avec les quantités exactes.</p>
+      <a href="#essai" class="btn btn-primary" style="margin-top:auto">Générer</a>
+    </div>
+    <div class="action-card">
+      <div style="font-size:1.6rem">📊</div>
+      <h3>Rapport des pertes évitées</h3>
+      <p>Visualisez l'argent économisé grâce à l'IA — chaque mois.</p>
+      <a href="#essai" class="btn btn-outline" style="margin-top:auto">Voir le rapport</a>
+    </div>
+    <div class="action-card">
+      <div style="font-size:1.6rem">📱</div>
+      <h3>Mes alertes WhatsApp</h3>
+      <p>Résumé hebdomadaire envoyé directement sur votre téléphone. Disponible dès le plan Officine.</p>
+      <span class="badge badge-grey" style="margin-top:auto">Disponible en plan payant</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stock dashboard ────────────────────────────────────────── -->
+<section>
+  <div class="section-label">✦ Anti-périmés</div>
+  <h2 class="section-title">Santé du stock — mis à jour en temps réel</h2>
+  <p class="section-sub">Chaque médicament a un statut clair. Vous savez quoi faire en 10 secondes.</p>
+
+  <!-- Légende -->
+  <div class="stock-legend">
+    <span><span class="badge badge-green">●</span> Optimal — stock sain</span>
+    <span><span class="badge badge-amber">●</span> À surveiller — ventes lentes</span>
+    <span><span class="badge badge-red">●</span> Urgent — péremption proche</span>
+    <span><span class="badge badge-grey">●</span> Dormant — aucune vente récente</span>
+  </div>
+
+  <div class="stock-grid">
+    <div class="stock-item">
+      <div class="drug-name">Paracétamol 500 mg</div>
+      <div class="drug-qty">320 boîtes</div>
+      <span class="badge badge-green">● Optimal</span>
+      <div class="stock-action">Voir les ventes →</div>
+    </div>
+    <div class="stock-item">
+      <div class="drug-name">Artéméther-Luméfantrine</div>
+      <div class="drug-qty">180 boîtes</div>
+      <span class="badge badge-amber">● À surveiller</span>
+      <div class="stock-action">Voir la recommandation →</div>
+    </div>
+    <div class="stock-item">
+      <div class="drug-name">Amoxicilline 1 g</div>
+      <div class="drug-qty">42 boîtes — périme dans 60 j</div>
+      <span class="badge badge-red">● Urgent</span>
+      <div class="stock-action">Proposer une remise →</div>
+    </div>
+    <div class="stock-item">
+      <div class="drug-name">Métronidazole 500 mg</div>
+      <div class="drug-qty">95 boîtes</div>
+      <span class="badge badge-grey">● Dormant</span>
+      <div class="stock-action">Voir les alternatives →</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ─────────────────────────────────────────────────── -->
+<section id="tarifs">
+  <div class="section-label centered">✦ Tarifs</div>
+  <h2 class="section-title centered">Simple. Transparent. Africain.</h2>
+  <p class="section-sub centered">30 jours d'essai gratuit sur tous les plans. Sans carte bancaire.</p>
+
+  <div class="pricing-grid">
+
+    <!-- Démo -->
+    <div class="plan-card">
+      <div class="plan-name">Démo</div>
+      <div class="plan-price">Gratuit <span>/ 14 jours</span></div>
+      <p class="plan-trial">Aucune carte requise</p>
+      <ul class="plan-features">
+        <li class="on"><span class="check">✓</span> Importer un fichier CSV / Excel</li>
+        <li class="on"><span class="check">✓</span> Tableau de bord basique</li>
+        <li class="on"><span class="check">✓</span> 1 rapport / mois</li>
+        <li class="off"><span class="cross">✕</span> Alertes WhatsApp</li>
+        <li class="off"><span class="cross">✕</span> Liste d'achat IA (PDF)</li>
+      </ul>
+      <div class="plan-cta">
+        <a href="#essai" class="btn btn-outline" style="width:100%;justify-content:center">Commencer gratuitement</a>
       </div>
     </div>
+
+    <!-- Officine (ex-Bureau) -->
+    <div class="plan-card popular">
+      <div class="plan-badge">Le plus populaire</div>
+      <div class="plan-name">Officine</div>
+      <div class="plan-price">50 000 <span>FCFA / mois</span></div>
+      <p class="plan-trial">30 jours offerts — sans engagement</p>
+      <ul class="plan-features">
+        <li class="on"><span class="check">✓</span> Import CSV / Excel illimité</li>
+        <li class="on"><span class="check">✓</span> Tableau de bord complet</li>
+        <li class="on"><span class="check">✓</span> Rapports illimités</li>
+        <li class="on"><span class="check">✓</span> Alertes WhatsApp</li>
+        <li class="on"><span class="check">✓</span> Liste d'achat IA (PDF)</li>
+      </ul>
+      <div class="plan-cta">
+        <a href="#essai" class="btn btn-primary" style="width:100%;justify-content:center">Essayer 30 jours</a>
+      </div>
+    </div>
+
+    <!-- Réseau -->
+    <div class="plan-card">
+      <div class="plan-name">Réseau</div>
+      <div class="plan-price">70 000 <span>FCFA / mois</span></div>
+      <p class="plan-trial">30 jours offerts — sans engagement</p>
+      <ul class="plan-features">
+        <li class="on"><span class="check">✓</span> Tout le plan Officine</li>
+        <li class="on"><span class="check">✓</span> Multi-officines (5+)</li>
+        <li class="on"><span class="check">✓</span> API grossistes</li>
+        <li class="on"><span class="check">✓</span> Tableau de bord centralisé</li>
+        <li class="on"><span class="check">✓</span> Support prioritaire</li>
+      </ul>
+      <div class="plan-cta">
+        <a href="mailto:contact@pharmapredict.africa" class="btn btn-outline" style="width:100%;justify-content:center">Contacter l'équipe</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── CTA Banner ─────────────────────────────────────────────── -->
+<div class="cta-banner" id="essai">
+  <h2>Prêt à arrêter de perdre de l'argent ?</h2>
+  <p>30 jours d'essai. Sans carte bancaire. Sans engagement.<br>Importez un fichier — voyez immédiatement vos premières économies.</p>
+
+  <form id="waitlist-form" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px" onsubmit="handleSignup(event)">
+    <input
+      id="email-input"
+      type="email"
+      placeholder="votre@email.com"
+      required
+      style="padding:12px 18px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text);font-size:0.95rem;width:280px;outline:none;"
+    />
+    <button type="submit" class="btn btn-primary">Démarrer mon essai gratuit</button>
+  </form>
+
+  <div class="cta-btns">
+    <a href="https://wa.me/0000000000" class="btn btn-outline">💬 Parler à un conseiller</a>
   </div>
 </div>
 
-<!-- ══ PHARMACIEN — Dashboard ══ -->
-<div id="page-dashboard" class="page">
-  <main>
-    <div style="margin-bottom:20px">
-      <h2 style="font-size:22px;font-weight:800">Tableau de bord</h2>
-      <p style="font-size:13px;color:var(--muted);margin-top:4px" id="today-date"></p>
-    </div>
-    <div class="kpi-grid animate" id="ph-kpis">
-      <div class="kpi-card"><div class="kpi-label">Économies ce mois</div><div class="kpi-value" id="kpi-savings" style="color:var(--emerald)">—</div><div class="kpi-sub">FCFA évités</div></div>
-      <div class="kpi-card" style="border-color:rgba(248,113,113,.2)"><div class="kpi-label">Alertes critiques</div><div class="kpi-value" id="kpi-red" style="color:var(--red)">—</div><div class="kpi-sub">médicaments à risque</div></div>
-      <div class="kpi-card" style="border-color:rgba(251,191,36,.2)"><div class="kpi-label">Stocks dormants</div><div class="kpi-value" id="kpi-yellow" style="color:var(--amber)">—</div><div class="kpi-sub">sur-stockés</div></div>
-      <div class="kpi-card" style="border-color:rgba(96,165,250,.2)"><div class="kpi-label">ROI abonnement</div><div class="kpi-value" id="kpi-roi" style="color:var(--blue)">—</div><div class="kpi-sub">ce mois</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px">
-      <button class="feature-card" style="cursor:pointer;text-align:left;border:none;transition:transform .2s" onclick="showTab('commandes','pharmacien')" onmouseenter="this.style.transform='scale(1.02)'" onmouseleave="this.style.transform='scale(1)'">
-        <div class="feature-icon">🛒</div><div class="feature-title">Générer ma liste d'achat</div><div class="feature-desc">Bon de commande en 1 clic pour les grossistes</div>
-      </button>
-      <button class="feature-card" style="cursor:pointer;text-align:left;border:none;transition:transform .2s" onclick="showTab('predictions','pharmacien')" onmouseenter="this.style.transform='scale(1.02)'" onmouseleave="this.style.transform='scale(1)'">
-        <div class="feature-icon">📊</div><div class="feature-title">Rapport des pertes évitées</div><div class="feature-desc">Visualisez les économies réalisées ce mois</div>
-      </button>
-      <button class="feature-card" style="cursor:pointer;text-align:left;border:none;transition:transform .2s" onclick="sendWhatsapp()" onmouseenter="this.style.transform='scale(1.02)'" onmouseleave="this.style.transform='scale(1)'">
-        <div class="feature-icon">💬</div><div class="feature-title">Alertes WhatsApp</div><div class="feature-desc">Résumé hebdomadaire chaque lundi matin</div>
-      </button>
-    </div>
-    <div class="card">
-      <div class="card-title">Stocks critiques</div>
-      <div id="quick-inv" class="inv-grid"></div>
-    </div>
-  </main>
-</div>
+<!-- ── Footer ─────────────────────────────────────────────────── -->
+<footer>
+  <div>💊 <strong style="color:var(--green-light)">PharmaPredict IA</strong> — Conçu pour l'Afrique.</div>
+  <div>© 2026 PharmaPredict · <a href="#">Mentions légales</a> · <a href="#">Confidentialité</a></div>
+</footer>
 
-<!-- ══ PHARMACIEN — Stocks ══ -->
-<div id="page-stocks" class="page">
-  <main>
-    <div style="margin-bottom:20px">
-      <h2 style="font-size:22px;font-weight:800">📦 Tableau Anti-Pertes</h2>
-      <p style="font-size:13px;color:var(--muted);margin-top:4px">Statut Rouge / Jaune / Vert</p>
-    </div>
-    <div id="full-inv" class="inv-grid"></div>
-  </main>
-</div>
+<!-- ── Toast ──────────────────────────────────────────────────── -->
+<div id="toast">✅ Inscription confirmée !</div>
 
-<!-- ══ PHARMACIEN — Prédictions ══ -->
-<div id="page-predictions" class="page">
-  <main>
-    <div style="margin-bottom:20px">
-      <h2 style="font-size:22px;font-weight:800">🧠 Prédictions IA</h2>
-      <p style="font-size:13px;color:var(--muted);margin-top:4px">Horizon 3 mois · Algorithme Prophet</p>
-    </div>
-    <div id="pred-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px"></div>
-    <div class="card" style="border-color:rgba(167,139,250,.2)">
-      <div class="card-title">💰 Rapport des pertes évit
+<!-- ── Scripts ────────────────────────────────────────────────── -->
+<script>
+  async function handleSignup(e) {
+    e.preventDefault();
+    const email = document.getElementById('email-input').value.trim();
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (data.success) showToast('✅ ' + data.message);
+      else showToast('⚠️ ' + data.message);
+    } catch {
+      showToast('⚠️ Erreur réseau, réessayez.');
+    }
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+</script>
+
+</body>
+</html>
