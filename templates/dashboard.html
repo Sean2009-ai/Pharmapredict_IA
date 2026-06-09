@@ -584,24 +584,116 @@
     if (file) handleFile(file);
   }
 
-  function handleFile(file) {
+  async function handleFile(file) {
     if (!file) return;
-    const valid = file.name.endsWith('.xlsx') || file.name.endsWith('.csv');
+    const valid = file.name.endsWith('.xlsx') || file.name.endsWith('.csv') || file.name.endsWith('.xls');
     if (!valid) { showToast('⚠️ Format non supporté. Utilisez .xlsx ou .csv'); return; }
-    showToast('⏳ Fichier reçu — connectez le backend pour l\'analyse IA');
-    const hist = document.getElementById('import-history');
-    const empty = hist.querySelector('.empty-state');
-    if (empty) empty.remove();
-    const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
-    const row = document.createElement('div');
-    row.className = 'achat-item';
-    row.innerHTML = `
-      <div>
-        <div class="achat-name">${file.name}</div>
-        <div class="achat-detail">Importé le ${now}</div>
+
+    // UI : état chargement
+    const dz = document.getElementById('drop-zone');
+    dz.innerHTML = `<div class="dz-icon">⏳</div><div class="dz-title">Analyse en cours…</div><div class="dz-sub">${file.name}</div>`;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res  = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      // Restaurer la drop zone
+      dz.innerHTML = `<div class="dz-icon">📥</div><div class="dz-title">Glissez votre fichier ici</div><div class="dz-sub">ou cliquez pour sélectionner — Excel (.xlsx) ou CSV (.csv)</div>`;
+
+      if (!data.success) {
+        showToast('⚠️ ' + data.message);
+        return;
+      }
+
+      // ── Mettre à jour le stock ──────────────────────────────
+      allStock = data.items;
+      renderStock(allStock);
+
+      // ── Mettre à jour les KPIs accueil ─────────────────────
+      updateKpis(data.kpis, data.total);
+
+      // ── Historique import ───────────────────────────────────
+      const hist  = document.getElementById('import-history');
+      const empty = hist.querySelector('.empty-state');
+      if (empty) empty.remove();
+      const now = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+      const row = document.createElement('div');
+      row.className = 'achat-item';
+      row.innerHTML = `
+        <div>
+          <div class="achat-name">${file.name}</div>
+          <div class="achat-detail">Importé le ${now} — ${data.total} références détectées</div>
+        </div>
+        <span class="badge badge-green">✓ Traité</span>`;
+      hist.prepend(row);
+
+      // ── Générer la liste d'achat ────────────────────────────
+      buildAchatList(data.items);
+
+      showToast(`✅ ${data.total} références analysées !`);
+
+      // Rediriger vers stock après 1,5s
+      setTimeout(() => showPage('stock', document.querySelectorAll('.nav-item')[1]), 1500);
+
+    } catch (err) {
+      dz.innerHTML = `<div class="dz-icon">📥</div><div class="dz-title">Glissez votre fichier ici</div><div class="dz-sub">ou cliquez pour sélectionner — Excel (.xlsx) ou CSV (.csv)</div>`;
+      showToast('⚠️ Erreur réseau. Réessayez.');
+    }
+  }
+
+  // ── KPIs ─────────────────────────────────────────────────────
+  function updateKpis(kpis, total) {
+    const cards = document.querySelectorAll('#page-accueil .kpi-value');
+    if (cards[0]) { cards[0].textContent = '—'; cards[0].style.color = 'var(--muted)'; }
+    if (cards[1]) { cards[1].textContent = kpis.urgent;    cards[1].style.color = kpis.urgent  > 0 ? 'var(--red)'   : 'var(--green)'; }
+    if (cards[2]) { cards[2].textContent = kpis.warning;   cards[2].style.color = kpis.warning > 0 ? 'var(--amber)' : 'var(--green)'; }
+    if (cards[3]) { cards[3].textContent = kpis.sante_pct + ' %'; cards[3].style.color = kpis.sante_pct >= 70 ? 'var(--green)' : 'var(--amber)'; }
+
+    // Sous-titres
+    const subs = document.querySelectorAll('#page-accueil .kpi-sub');
+    if (subs[1]) subs[1].textContent = `sur ${total} références`;
+    if (subs[2]) subs[2].textContent = `sur ${total} références`;
+    if (subs[3]) subs[3].textContent = `${total} références analysées`;
+
+    // Stock critique accueil
+    const urgents = allStock.filter(s => s.status === 'urgent').slice(0, 4);
+    const stockCritique = document.querySelector('#page-accueil .card .stock-item')?.closest('.card');
+    if (stockCritique && urgents.length) {
+      stockCritique.querySelector('.card-header').nextElementSibling?.remove();
+      const list = urgents.map(s => `
+        <div class="stock-item">
+          <div class="stock-bar" style="background:${colorMap[s.status]}"></div>
+          <div class="stock-info">
+            <div class="stock-name">${s.name}</div>
+            <div class="stock-qty">${s.qty}</div>
+          </div>
+          <span class="badge ${badgeMap[s.status]}">${s.label}</span>
+        </div>`).join('');
+      stockCritique.insertAdjacentHTML('beforeend', list);
+    }
+  }
+
+  // ── Liste d'achat auto ────────────────────────────────────────
+  function buildAchatList(items) {
+    const urgents  = items.filter(s => s.status === 'urgent'  || s.status === 'warning');
+    const achatDiv = document.querySelector('#page-achat .card');
+    if (!urgents.length) return;
+    achatDiv.innerHTML = `
+      <div class="card-header">
+        <span class="card-title">🛒 Produits à commander (${urgents.length})</span>
+        <button class="btn btn-sm btn-primary" onclick="showToast('📄 Fonctionnalité PDF — bientôt disponible')">📄 PDF</button>
       </div>
-      <span class="badge badge-green">✓ Reçu</span>`;
-    hist.prepend(row);
+      ${urgents.map(s => `
+        <div class="achat-item">
+          <div>
+            <div class="achat-name">${s.name}</div>
+            <div class="achat-detail">${s.qty} — ${s.action}</div>
+          </div>
+          <span class="badge ${badgeMap[s.status]}">${s.label}</span>
+        </div>`).join('')}`;
   }
 
   // ── WhatsApp ────────────────────────────────────────────────
