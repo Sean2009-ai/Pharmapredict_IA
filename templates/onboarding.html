@@ -695,6 +695,8 @@
   async function handleSignup(e) {
     e.preventDefault();
     const email = document.getElementById('email-input').value.trim();
+    const btn = e.submitter || document.querySelector('#waitlist-form button[type=submit]');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Chargement…'; }
     try {
       const res = await fetch('/api/waitlist', {
         method: 'POST',
@@ -702,10 +704,16 @@
         body: JSON.stringify({ email })
       });
       const data = await res.json();
-      if (data.success) showToast('✅ ' + data.message);
-      else showToast('⚠️ ' + data.message);
+      if (data.success) {
+        showToast('✅ Inscription confirmée ! Redirection…');
+        setTimeout(() => { window.location.href = '/dashboard'; }, 1200);
+      } else {
+        showToast('⚠️ ' + data.message);
+        if (btn) { btn.disabled = false; btn.textContent = 'Démarrer mon essai gratuit'; }
+      }
     } catch {
       showToast('⚠️ Erreur réseau, réessayez.');
+      if (btn) { btn.disabled = false; btn.textContent = 'Démarrer mon essai gratuit'; }
     }
   }
 
