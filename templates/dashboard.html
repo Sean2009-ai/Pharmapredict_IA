@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PharmaPredict IA — Tableau de bord</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#2ecc8a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PharmaPredict IA" />
+  <link rel="apple-touch-icon" href="/static/icon-192.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -268,7 +276,7 @@
     <span class="icon">📊</span> Rapports & pertes
   </a>
   <a class="nav-item" onclick="showPage('alertes', this)">
-    <span class="icon">📱</span> Alertes WhatsApp
+    <span class="icon">📧</span> Alertes Email
   </a>
 
   <div class="sidebar-bottom">
@@ -399,7 +407,20 @@
     <!-- ══ IMPORT ══ -->
     <div class="page" id="page-import">
       <div class="page-title">Importer des données</div>
-      <p class="page-sub">Glissez votre export Excel ou CSV. L'IA reconnaît automatiquement les colonnes.</p>
+      <p class="page-sub">Glissez votre export Excel ou CSV. L'IA reconnaît les colonnes et analyse la saisonnalité.</p>
+
+      <div class="card" style="margin-bottom:18px;padding:16px 20px">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <span style="font-size:0.875rem;font-weight:600">🌍 Votre région :</span>
+          <select id="region-select" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:0.875rem;outline:none;cursor:pointer">
+            <option value="afrique_ouest">Afrique de l'Ouest</option>
+            <option value="afrique_centre">Afrique Centrale</option>
+            <option value="afrique_est">Afrique de l'Est</option>
+            <option value="afrique_sud">Afrique Australe</option>
+          </select>
+          <span style="font-size:0.78rem;color:var(--muted)">Utilisé pour les prévisions saisonnières</span>
+        </div>
+      </div>
 
       <div
         class="drop-zone"
@@ -414,6 +435,8 @@
         <div class="dz-sub">ou cliquez pour sélectionner — Excel (.xlsx) ou CSV (.csv)</div>
       </div>
       <input type="file" id="file-input" accept=".xlsx,.csv" style="display:none" onchange="handleFile(this.files[0])" />
+
+      <div id="saison-alertes" style="margin-top:18px;display:flex;flex-direction:column;gap:10px"></div>
 
       <div class="card" style="margin-top:24px">
         <div class="card-header"><span class="card-title">📋 Historique des imports</span></div>
@@ -469,54 +492,81 @@
       </div>
     </div>
 
-    <!-- ══ ALERTES WHATSAPP ══ -->
+    <!-- ══ ALERTES EMAIL ══ -->
     <div class="page" id="page-alertes">
-      <div class="page-title">Alertes WhatsApp</div>
-      <p class="page-sub">Configurez les résumés hebdomadaires envoyés sur votre téléphone.</p>
+      <div class="page-title">Alertes Email</div>
+      <p class="page-sub">Powered by Brevo — recevez vos rapports de stock directement par email.</p>
 
       <div class="card" style="margin-bottom:20px">
-        <div class="card-header"><span class="card-title">📱 Votre numéro WhatsApp</span></div>
-        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-          <input type="tel" id="wa-number" placeholder="+221 77 000 00 00"
-            style="padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:0.875rem;width:220px;outline:none" />
-          <button class="btn btn-primary btn-sm" onclick="saveNumber()">Enregistrer</button>
+        <div class="card-header"><span class="card-title">📧 Configuration</span></div>
+        <div style="display:grid;gap:12px">
+          <div>
+            <label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:5px">Email destinataire</label>
+            <input type="email" id="notif-email" placeholder="votre@email.com"
+              style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:0.875rem;outline:none" />
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="saveEmailConfig()">💾 Enregistrer</button>
+            <button class="btn btn-outline btn-sm" onclick="sendTestEmail()">📤 Envoyer un test</button>
+          </div>
         </div>
-        <p style="font-size:0.78rem;color:var(--muted);margin-top:10px">
-          Les alertes seront envoyées à ce numéro selon la fréquence choisie ci-dessous.
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header"><span class="card-title">⏰ Fréquence des rapports</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary"  id="freq-lundi"  onclick="setFreq(this,'lundi')">📅 Chaque lundi</button>
+          <button class="btn btn-sm btn-outline"  id="freq-daily"  onclick="setFreq(this,'daily')">📆 Chaque jour</button>
+          <button class="btn btn-sm btn-outline"  id="freq-urgent" onclick="setFreq(this,'urgent')">🚨 Urgences seulement</button>
+        </div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:10px">
+          Les alertes urgentes (péremptions, ruptures) sont envoyées immédiatement quelle que soit la fréquence.
         </p>
       </div>
 
       <div class="card" style="margin-bottom:20px">
-        <div class="card-header"><span class="card-title">⚙️ Fréquence des envois</span></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-sm btn-primary"  onclick="setFreq(this)">Chaque lundi matin</button>
-          <button class="btn btn-sm btn-outline"  onclick="setFreq(this)">Chaque jour</button>
-          <button class="btn btn-sm btn-outline"  onclick="setFreq(this)">Seulement si alerte urgente</button>
+        <div class="card-header"><span class="card-title">👁️ Aperçu du rapport</span></div>
+        <div style="background:var(--card2);border-radius:12px;padding:18px;font-size:0.85rem;line-height:1.7;border:1px solid var(--border);color:var(--muted)">
+          <div style="color:var(--green);font-weight:700;margin-bottom:8px">💊 PharmaPredict IA — Rapport du <span id="preview-date"></span></div>
+          <div id="email-preview-content">Importez un fichier de stock pour voir l'aperçu du rapport.</div>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-header"><span class="card-title">📨 Aperçu du message</span></div>
-        <div style="background:var(--card2);border-radius:12px;padding:18px;font-size:0.85rem;line-height:1.8;border:1px solid var(--border);color:var(--muted)">
-          <em>L'aperçu sera disponible après votre premier import de données.</em>
+        <div class="card-header"><span class="card-title">📋 Historique des envois</span></div>
+        <div id="email-history">
+          <div class="empty-state">
+            <span class="es-icon">📭</span>
+            <span class="es-title">Aucun email envoyé</span>
+            <span class="es-sub">L'historique apparaîtra ici après le premier envoi.</span>
+          </div>
         </div>
-        <button class="btn btn-outline btn-sm" style="margin-top:14px"
-          onclick="showToast('⚠️ Enregistrez d\'abord votre numéro et importez des données')">
-          Envoyer un message test
-        </button>
       </div>
     </div>
 
   </div><!-- /content -->
 </div><!-- /main -->
 
+
+<!-- PWA Install Banner -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;background:var(--card);border:1px solid var(--green);border-radius:14px;padding:14px 20px;align-items:center;gap:14px;box-shadow:0 8px 32px #00000066;max-width:380px;width:calc(100% - 32px)">
+  <span style="font-size:1.8rem;flex-shrink:0">💊</span>
+  <div style="flex:1">
+    <div style="font-weight:700;font-size:0.9rem">Installer PharmaPredict IA</div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-top:2px">Accédez à l'app hors ligne depuis votre écran d'accueil</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button class="btn btn-primary btn-sm" onclick="installPwa()">Installer</button>
+    <button class="btn btn-ghost btn-sm" onclick="dismissPwa()">✕</button>
+  </div>
+</div>
 <div id="toast"></div>
 
 <script>
   // ── Navigation ─────────────────────────────────────────────
   const pageNames = {
     accueil: 'Accueil', stock: 'Santé du stock', achat: "Liste d'achat",
-    import: 'Importer des données', rapport: 'Rapports & pertes', alertes: 'Alertes WhatsApp',
+    import: 'Importer des données', rapport: 'Rapports & pertes', alertes: 'Alertes Email',
   };
 
   function showPage(id, el) {
@@ -609,7 +659,8 @@
       }
 
       // ── Mettre à jour le stock ──────────────────────────────
-      allStock = data.items;
+      allStock     = data.items;
+      lastStockData = data.items;
       renderStock(allStock);
 
       // ── Mettre à jour les KPIs accueil ─────────────────────
@@ -634,6 +685,23 @@
       buildAchatList(data.items);
 
       showToast(`✅ ${data.total} références analysées !`);
+
+      // ── Alertes saisonnières ────────────────────────────────
+      if (data.saison && data.saison.alertes.length) {
+        renderSaisonAlertes(data.saison);
+      }
+
+      
+      // Sauvegarder dans IndexedDB (offline/local)
+      try {
+        await saveStockToIDB(data.items, {
+          filename: data.filename, total: data.total,
+          imported_at: new Date().toISOString()
+        });
+      } catch(e) { console.warn('[IDB] Save error:', e); }
+
+// ── Mettre à jour aperçu Email ───────────────────────
+      updateEmailPreview();
 
       // Rediriger vers stock après 1,5s
       setTimeout(() => showPage('stock', document.querySelectorAll('.nav-item')[1]), 1500);
@@ -696,19 +764,338 @@
         </div>`).join('')}`;
   }
 
-  // ── WhatsApp ────────────────────────────────────────────────
-  function saveNumber() {
-    const num = document.getElementById('wa-number').value.trim();
-    if (!num) { showToast('⚠️ Entrez un numéro valide'); return; }
-    showToast('✅ Numéro enregistré : ' + num);
+  // ── Alertes saisonnières ─────────────────────────────────────
+  function renderSaisonAlertes(saison) {
+    const alertesCard = document.querySelector('#page-accueil .card:last-of-type') ||
+                        document.querySelector('#page-accueil');
+    const container   = document.getElementById('saison-alertes') || (() => {
+      const div = document.createElement('div');
+      div.id = 'saison-alertes';
+      div.style.marginBottom = '24px';
+      document.querySelector('#page-accueil .kpi-row').insertAdjacentElement('afterend', div);
+      return div;
+    })();
+
+    container.innerHTML = saison.alertes.map(a => `
+      <div style="display:flex;align-items:flex-start;gap:14px;padding:16px 20px;background:var(--card);border:1px solid ${a.niveau==='urgent'?'var(--red)':a.niveau==='warning'?'var(--amber)':'var(--border)'};border-radius:12px;margin-bottom:10px">
+        <span style="font-size:1.4rem;flex-shrink:0">${a.icon}</span>
+        <div>
+          <div style="font-weight:700;font-size:0.9rem;color:${a.niveau==='urgent'?'var(--red)':a.niveau==='warning'?'var(--amber)':'var(--green)'}">${a.titre}</div>
+          <div style="font-size:0.82rem;color:var(--muted);margin-top:3px">${a.message}</div>
+        </div>
+      </div>`).join('');
+
+    // Prévisions dans les alertes accueil
+    if (saison.previsions && saison.previsions.length) {
+      const alertCard = document.querySelector('#page-accueil .grid-2 .card:last-child');
+      if (alertCard) {
+        const prev = saison.previsions.slice(0,3);
+        prev.forEach(p => {
+          const row = document.createElement('div');
+          row.className = 'alert-item';
+          row.innerHTML = `
+            <div class="alert-icon">🌧️</div>
+            <div>
+              <div class="alert-msg">${p.name} — ${p.conseil}</div>
+              <div class="alert-time">Prévision saisonnière · boost ×${p.boost}</div>
+            </div>`;
+          alertCard.appendChild(row);
+        });
+      }
+    }
   }
 
-  function setFreq(btn) {
+  // ── Email Brevo ──────────────────────────────────────────────
+  let emailConfig    = { notif_email: '', freq: 'lundi' };
+  let lastStockData  = null;
+  let lastKpis       = {};
+  let lastSaisonAlertes = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const d = document.getElementById('preview-date');
+    if (d) d.textContent = new Date().toLocaleDateString('fr-FR', {day:'2-digit', month:'long', year:'numeric'});
+  });
+
+  function saveEmailConfig() {
+    const email = document.getElementById('notif-email').value.trim();
+    if (!email || !email.includes('@')) { showToast('⚠️ Email invalide'); return; }
+    emailConfig.notif_email = email;
+    fetch('/api/email/config', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(emailConfig)
+    });
+    updateEmailPreview();
+    showToast('✅ Email enregistré : ' + email);
+  }
+
+  function updateEmailPreview() {
+    const el = document.getElementById('email-preview-content');
+    if (!el) return;
+    const urgents  = (lastStockData||[]).filter(s=>s.status==='urgent');
+    const warnings = (lastStockData||[]).filter(s=>s.status==='warning');
+    if (!lastStockData || !lastStockData.length) {
+      el.textContent = "Importez un fichier de stock pour voir l'aperçu du rapport.";
+      return;
+    }
+    el.innerHTML = `
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        <span style="background:#e05c5c22;color:#e05c5c;padding:4px 10px;border-radius:6px;font-size:12px">🔴 ${urgents.length} urgent(s)</span>
+        <span style="background:#f5a62322;color:#f5a623;padding:4px 10px;border-radius:6px;font-size:12px">🟡 ${warnings.length} à surveiller</span>
+        <span style="background:#2ecc8a22;color:#2ecc8a;padding:4px 10px;border-radius:6px;font-size:12px">✅ ${lastKpis.sante_pct||0}% santé stock</span>
+      </div>
+      ${urgents.slice(0,3).map(i=>`<div style="font-size:12px;color:#e05c5c;padding:2px 0">• ${i.name} — ${i.qty}</div>`).join('')}
+      ${warnings.slice(0,3).map(i=>`<div style="font-size:12px;color:#f5a623;padding:2px 0">• ${i.name} — ${i.qty}</div>`).join('')}
+      <div style="margin-top:8px;font-size:12px;color:#7aad90">📊 Rapport complet disponible sur le dashboard →</div>`;
+  }
+
+  async function sendTestEmail() {
+    const email = document.getElementById('notif-email').value.trim();
+    if (!email || !email.includes('@')) { showToast("⚠️ Entrez d'abord un email"); return; }
+    showToast('📤 Envoi en cours…');
+    try {
+      const res  = await fetch('/api/email/send', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          to: email, items: lastStockData||[],
+          kpis: lastKpis, saison_alertes: lastSaisonAlertes,
+          subject: '💊 PharmaPredict IA — Rapport test'
+        })
+      });
+      const data = await res.json();
+      if (data.success) { showToast('✅ Email envoyé !');  addEmailHistory(email, '✅ Envoyé'); }
+      else              { showToast('❌ ' + data.message); addEmailHistory(email, '❌ Échec');  }
+    } catch { showToast('❌ Erreur réseau'); }
+  }
+
+  function addEmailHistory(dest, statut) {
+    const hist  = document.getElementById('email-history');
+    const empty = hist ? hist.querySelector('.empty-state') : null;
+    if (empty) empty.remove();
+    const now = new Date().toLocaleString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    const row = document.createElement('div');
+    row.className = 'achat-item';
+    row.innerHTML = `<div><div class="achat-name">Rapport à ${dest}</div><div class="achat-detail">${now}</div></div><span class="badge ${statut.includes('✅')?'badge-green':'badge-red'}">${statut}</span>`;
+    if (hist) hist.prepend(row);
+  }
+
+  function setFreq(btn, freq) {
     document.querySelectorAll('#page-alertes .btn-sm').forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-outline'); });
     btn.classList.remove('btn-outline');
     btn.classList.add('btn-primary');
+    emailConfig.freq = freq;
     showToast('✅ Fréquence mise à jour');
   }
+
+  }
+
+  // ── Chargement initial — IndexedDB (local) en priorite ──────
+  async function loadFromDB() {
+    try {
+      await loadConfigFromIDB();
+
+      // Stock depuis IndexedDB
+      const localItems = await idbGetAll('stock');
+      if (localItems && localItems.length) {
+        allStock = localItems; lastStockData = localItems;
+        renderStock(allStock); updateEmailPreview();
+        const kpis = {
+          urgent:    allStock.filter(s=>s.status==='urgent').length,
+          warning:   allStock.filter(s=>s.status==='warning').length,
+          ok:        allStock.filter(s=>s.status==='ok').length,
+          dormant:   allStock.filter(s=>s.status==='dormant').length,
+          sante_pct: allStock.length ? Math.round(allStock.filter(s=>s.status==='ok').length/allStock.length*100) : 0,
+        };
+        updateKpis(kpis, allStock.length);
+        showToast('Stock charge localement (' + localItems.length + ' references)');
+      }
+
+      // Imports depuis IDB
+      const localImports = await idbGetAll('imports');
+      if (localImports && localImports.length) {
+        const hist = document.getElementById('import-history');
+        if (hist) {
+          hist.innerHTML = '';
+          localImports.slice().reverse().forEach(imp => {
+            const d   = new Date(imp.imported_at||Date.now()).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+            const row = document.createElement('div');
+            row.className = 'achat-item';
+            row.innerHTML = '<div><div class="achat-name">'+(imp.filename||'Import')+'</div><div class="achat-detail">Importe le '+d+' - '+(imp.total||'?')+' references</div></div><span class="badge badge-green">Traite</span>';
+            hist.appendChild(row);
+          });
+        }
+      }
+
+      // Fallback Supabase si dispo
+      try {
+        const stockRes  = await fetch('/api/stock');
+        const stockData = await stockRes.json();
+        if (stockData.success && stockData.items && stockData.items.length) {
+          allStock = stockData.items; lastStockData = stockData.items;
+          renderStock(allStock); updateEmailPreview();
+          const kpis = {
+            urgent:    allStock.filter(s=>s.status==='urgent').length,
+            warning:   allStock.filter(s=>s.status==='warning').length,
+            ok:        allStock.filter(s=>s.status==='ok').length,
+            dormant:   allStock.filter(s=>s.status==='dormant').length,
+            sante_pct: allStock.length ? Math.round(allStock.filter(s=>s.status==='ok').length/allStock.length*100) : 0,
+          };
+          updateKpis(kpis, allStock.length);
+        }
+
+      const impRes  = await fetch('/api/imports');
+      const impData = await impRes.json();
+      if (impData.success && impData.imports && impData.imports.length) {
+        const hist = document.getElementById('import-history');
+        hist.innerHTML = '';
+        impData.imports.forEach(imp => {
+          const d   = new Date(imp.imported_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+          const row = document.createElement('div');
+          row.className = 'achat-item';
+          row.innerHTML = `<div><div class="achat-name">${imp.filename}</div><div class="achat-detail">Importé le ${d} — ${imp.total} références</div></div><span class="badge badge-green">✓ Traité</span>`;
+          hist.appendChild(row);
+        });
+      }
+
+      const emailRes  = await fetch('/api/email/logs');
+      const emailData = await emailRes.json();
+      if (emailData.success && emailData.logs && emailData.logs.length) {
+        const hist = document.getElementById('email-history');
+        if (hist) {
+          hist.innerHTML = '';
+          emailData.logs.forEach(log => {
+            const d   = new Date(log.sent_at).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+            const row = document.createElement('div');
+            row.className = 'achat-item';
+            row.innerHTML = `<div><div class="achat-name">Rapport à ${log.to}</div><div class="achat-detail">${d}</div></div><span class="badge badge-green">✅ Envoyé</span>`;
+            hist.appendChild(row);
+          });
+        }
+      }
+    } catch(e) {
+      console.log('Mode local — DB non disponible');
+    }
+  }
+
+  // Sauvegarder config email dans Supabase — géré directement dans saveEmailConfig()
+
+
+  // ── PWA Service Worker ───────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(r => console.log('[PWA] SW OK:', r.scope))
+        .catch(e => console.warn('[PWA] SW error:', e));
+    });
+  }
+
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!localStorage.getItem('pwa-dismissed')) {
+      const b = document.getElementById('pwa-banner');
+      if (b) b.style.display = 'flex';
+    }
+  });
+
+  function installPwa() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(r => {
+      if (r.outcome === 'accepted') showToast('App installée avec succes !');
+      document.getElementById('pwa-banner').style.display = 'none';
+      deferredPrompt = null;
+    });
+  }
+  function dismissPwa() {
+    document.getElementById('pwa-banner').style.display = 'none';
+    localStorage.setItem('pwa-dismissed', '1');
+  }
+
+  // ── IndexedDB ────────────────────────────────────────────────
+  const DB_NAME = 'pharmapredict';
+  let _idb = null;
+
+  function openIDB() {
+    return new Promise((res, rej) => {
+      if (_idb) return res(_idb);
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        ['stock','imports','config','email_logs'].forEach(s => {
+          if (!db.objectStoreNames.contains(s)) {
+            db.createObjectStore(s, s === 'stock' ? {keyPath:'name'} : {keyPath:'id', autoIncrement:true});
+          }
+        });
+      };
+      req.onsuccess = e => { _idb = e.target.result; res(_idb); };
+      req.onerror   = e => rej(e);
+    });
+  }
+
+  async function idbPut(store, data) {
+    const db = await openIDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(store, 'readwrite');
+      const r  = tx.objectStore(store).put(data);
+      r.onsuccess = () => res(r.result);
+      r.onerror   = () => rej(r.error);
+    });
+  }
+
+  async function idbGetAll(store) {
+    const db = await openIDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(store, 'readonly');
+      const r  = tx.objectStore(store).getAll();
+      r.onsuccess = () => res(r.result);
+      r.onerror   = () => rej(r.error);
+    });
+  }
+
+  async function idbClear(store) {
+    const db = await openIDB();
+    return new Promise((res, rej) => {
+      const tx = db.transaction(store, 'readwrite');
+      const r  = tx.objectStore(store).clear();
+      r.onsuccess = () => res();
+      r.onerror   = () => rej(r.error);
+    });
+  }
+
+  async function saveStockToIDB(items, meta) {
+    await idbClear('stock');
+    for (const item of items) await idbPut('stock', item);
+    await idbPut('imports', {...meta, id: undefined});
+    console.log('[IDB] Stock saved:', items.length);
+  }
+
+  async function loadConfigFromIDB() {
+    try {
+      const db = await openIDB();
+      const r  = await new Promise(res => {
+        const tx = db.transaction('config','readonly');
+        const rq = tx.objectStore('config').get('emailConfig');
+        rq.onsuccess = () => res(rq.result);
+        rq.onerror   = () => res(null);
+      });
+      if (r && r.value) {
+        emailConfig = r.value;
+        const el = document.getElementById('notif-email');
+        if (el && r.value.notif_email) el.value = r.value.notif_email;
+      }
+    } catch(e) {}
+  }
+
+  const _origSaveEmail = saveEmailConfig;
+  saveEmailConfig = async function() {
+    _origSaveEmail();
+    try { await idbPut('config', {id:1, key:'emailConfig', value: emailConfig}); } catch(e) {}
+  };
+
+  loadFromDB();
 </script>
 </body>
 </html>
+
+       
