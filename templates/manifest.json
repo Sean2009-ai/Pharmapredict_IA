@@ -1,0 +1,33 @@
+{
+  "name": "PharmaPredict IA",
+  "short_name": "PharmaPredict",
+  "description": "IA prédictive pour pharmacies africaines",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#05150f",
+  "theme_color": "#2ecc8a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["medical", "business", "productivity"]
+}
