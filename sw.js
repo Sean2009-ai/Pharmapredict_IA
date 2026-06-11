@@ -1,78 +1,29 @@
-// ── PharmaPredict IA — Service Worker ─────────────────────────
-const CACHE_NAME    = 'pharmapredict-v1';
-const CACHE_URLS    = [
-  '/dashboard',
-  '/static/sw.js',
-];
+const CACHE = 'pharmapredict-v2';
+const URLS  = ['/dashboard', '/sw.js', '/manifest.json', '/static/icon.svg'];
 
-// ── Install : mise en cache des ressources statiques ──────────
-self.addEventListener('install', event => {
+self.addEventListener('install', e => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CACHE_URLS))
-  );
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(URLS).catch(()=>{})));
 });
 
-// ── Activate : nettoyage des anciens caches ───────────────────
-self.addEventListener('activate', event => {
-  event.waitUntil(
+self.addEventListener('activate', e => {
+  e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
-// ── Fetch : stratégie Network First avec fallback cache ───────
-self.addEventListener('fetch', event => {
-  const { request } = event;
-
-  // Ne pas intercepter les requêtes API (toujours réseau)
-  if (request.url.includes('/api/')) return;
-
-  // Requêtes GET uniquement
-  if (request.method !== 'GET') return;
-
-  event.respondWith(
-    fetch(request)
-      .then(response => {
-        // Mettre en cache la réponse fraîche
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-        }
-        return response;
-      })
-      .catch(() => {
-        // Hors ligne → retourner le cache
-        return caches.match(request).then(cached => {
-          if (cached) return cached;
-          // Fallback dashboard si page non cachée
-          return caches.match('/dashboard');
-        });
-      })
+self.addEventListener('fetch', e => {
+  if (e.request.url.includes('/api/')) return;
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    fetch(e.request).then(res => {
+      if (res.ok) {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+      }
+      return res;
+    }).catch(() => caches.match(e.request).then(c => c || caches.match('/dashboard')))
   );
 });
-
-// ── Sync en arrière-plan : synchroniser les données offline ───
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-stock') {
-    event.waitUntil(syncPendingData());
-  }
-});
-
-async function syncPendingData() {
-  // Récupérer les données en attente depuis IndexedDB
-  const pending = await getPendingFromIDB();
-  for (const item of pending) {
-    try {
-      await fetch('/api/upload', { method: 'POST', body: item.formData });
-      await removePendingFromIDB(item.id);
-    } catch (e) {
-      console.warn('[SW] Sync échoué, retry plus tard', e);
-    }
-  }
-}
-
-// Stubs IndexedDB (à implémenter si besoin offline avancé)
-async function getPendingFromIDB()       { return []; }
-async function removePendingFromIDB(id) { return; }
