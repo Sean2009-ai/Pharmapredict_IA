@@ -1,9 +1,18 @@
 from flask import Flask, render_template, request, jsonify, session, send_from_directory
+from flask_cors import CORS
 import os, io, datetime, json
 import pandas as pd
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = os.environ.get("SECRET_KEY", "pharmapredict-secret-2026")
+
+# ─── CORS — autorise Lovable + Render ────────────────────────────────────────
+CORS(app, origins=[
+    "https://pharmapredict-ia.lovable.app",
+    "https://pharmapredict-ia-czd7.onrender.com",
+    "http://localhost:5173",
+    "http://localhost:3000",
+], supports_credentials=True)
 
 # ─── Supabase (optionnel — les données vivent dans IndexedDB côté client) ─────
 try:
